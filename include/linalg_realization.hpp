@@ -23,12 +23,12 @@ class Matrix {
 private:
     //sources
     double* m_ptr = nullptr; //отметим его нулевым указателем ради избежания возможных ошибок(UB) в дальнейшем(например при вызове дистрактора)
-    size_t m_rows, m_columns, m_capacity;
+    size_t m_rows{0}, m_columns{0}, m_capacity{0};
     
 
 public:
     //metods 
-    bool empty() const {return m_rows == 0 || m_columns == 0;}
+    bool empty() const noexcept {return m_rows == 0 || m_columns == 0;}
     size_t rows() const {return m_rows;}
     size_t columns() const {return m_columns;}
     size_t capacity() const {return m_capacity;}
@@ -47,7 +47,7 @@ public:
     friend void swap(Matrix& first, Matrix& second) noexcept {first.swap(second);} //глобальная функция обмена между двумя матрицами 
     
     //matrix constructors 
-    Matrix() noexcept : m_rows{0}, m_columns{0}, m_capacity{0}, m_ptr(nullptr){} //default constr, m_capacity = 0 because of 0 size of the matrix 
+    Matrix() noexcept{}; //default constr, m_capacity = 0 because of 0 size of the matrix 
     Matrix(const Matrix& other); //copying constr, no noexcept потому, что не можем гарантировать отсутствие исключений(например при выделении памяти)
     Matrix(Matrix&& other) noexcept; //moving constr
     Matrix(int rows, int columns = 1); //добавил конструктор с параметрами

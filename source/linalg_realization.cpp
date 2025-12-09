@@ -1,4 +1,5 @@
 #include "linalg_realization.hpp"
+#include <vector>
 
 using namespace linalg;
 using std::cout;
@@ -19,6 +20,8 @@ Matrix::Matrix(const Matrix& other) : m_rows(other.m_rows), m_columns(other.m_co
     
     for(size_t i = 0; i < m_capacity; ++i)
         m_ptr[i] = other.m_ptr[i];
+
+    
 }
 
 
@@ -28,7 +31,7 @@ Matrix::Matrix(Matrix&& other) noexcept : m_ptr(other.m_ptr), m_rows(other.m_row
 } 
 
 
-Matrix::Matrix(int rows, int columns) : Matrix(){ //constructor with parameters using default constructor
+Matrix::Matrix(int rows, int columns) { //constructor with parameters using default constructor
     //we are using default constructor btw
     m_rows = rows;
     m_columns = columns;
@@ -535,7 +538,7 @@ std::ostream& linalg::operator<<(std::ostream& out, const Matrix& m) {
         return out;
     }
 
-    // Находим максимальную ширину в каждом столбце
+    // finding max width in each column
     std::vector<size_t> col_widths(m.columns(), 0);
     for (size_t j = 0; j < m.columns(); ++j) {
         for (size_t i = 0; i < m.rows(); ++i) {
@@ -545,15 +548,54 @@ std::ostream& linalg::operator<<(std::ostream& out, const Matrix& m) {
         }
     }
 
-    // Выводим матрицу с выравниванием
+    //printing matrix with tabulation
     for (size_t i = 0; i < m.rows(); ++i) {
         out << "|";
         for (size_t j = 0; j < m.columns(); ++j) {
             if (j > 0) out << " ";
             out << std::setw(col_widths[j]) << m(i, j);
         }
-        out << "|\n"; // \n для каждой строки, как ожидает тест
+        out << "|\n"; // \n for each string(i mean row)
     }
 
     return out;
+   
 }
+// std::ostream & operator<<(std::ostream &os, const Matrix &matrix){
+//     if (matrix.empty()) {
+//         return os << "||";
+//     }
+
+//     // Вектор для хранения максимальной ширины каждого столбца
+//     std::vector<std::size_t> max_width(matrix.columns(), 0);
+//     os.width(0);
+//     // Создаем временный строковый поток
+//     std::ostringstream out;
+//     // Копируем в него настройки форматирования из основного потока
+//     out.copyfmt(os);
+//     // Вычисляем ширину столбцов, проходя по стобцам, а потом по строкам
+//     for (size_t i = 0; i < matrix.columns(); ++i) {
+//         for (size_t j = 0; j < matrix.rows(); ++j) {
+//             // Превращаем элемент в строку
+//             out << matrix(j, i);
+//             // Сравниваем длину полученной строки с текущим максимумом для этого столбца
+//             max_width[i] = std::max(max_width[i], out.str().size());
+//             // Очищаем строковый поток для следующего элемента
+//             out.str("");
+//         }
+//     }
+
+//     // Печатаем матрицу с выравниванием, проходя по строкам, а потом по столбцам
+//     for(size_t i = 0; i < matrix.rows(); ++i) {
+//         // Печатаем "|" и первый элемент с нужной шириной
+//         os << '|' << std::setw(max_width[0]) << matrix(i, 0);
+//         // Печатаем остальные элементы строки
+//         for (size_t j = 1; j < matrix.columns(); ++j) {
+//             // Пробел-разделитель и сам элемент с нужной шириной
+//             os << ' ' << std::setw(max_width[j]) << matrix(i, j);
+//         }
+//         os << "|\n";
+//     }
+//     // Возвращаем поток
+//     return os;
+// }
