@@ -1,14 +1,13 @@
 #include <iostream>
 #include <initializer_list>
 #include <ostream>
-#include <iomanip>
 #include <sstream>
 #include <stdio.h>
 #include <cstdlib>
 #include <cmath> 
 #include <stdexcept>
 #include <iomanip>
-#include <sstream>
+#include <string>
 #include <algorithm>
 
 
@@ -60,6 +59,7 @@ public:
     //copying and assignment opperators(используем operator= для перегрузки)
     Matrix& operator=(const Matrix& other); // оператор копирующего присваивания 
     Matrix& operator=(Matrix&& other) noexcept; // оператор перемещающего присваивания(не const так как забирает русурсы у объекта при копировании)
+    Matrix& operator >>(Matrix&& other); 
 
     static Matrix uno(size_t size);
     
@@ -107,5 +107,7 @@ Matrix solve(const Matrix& matr, const Matrix& vector);
 Matrix upper_triang(const Matrix& matr, int& expression_sign);
 Matrix lover_triang(const Matrix& matr, int& expression_sign);
 std::ostream& operator<<(std::ostream& out, const Matrix& m);
+
+std::istream& operator>>(std::istream& in, Matrix& m); //operator >> for reading matrix from standart input source
 }
 inline bool are_equal(double x, double y, double eps = exp(-12)) {return abs(x - y) < eps;}
