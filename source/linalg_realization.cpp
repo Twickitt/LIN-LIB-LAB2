@@ -573,28 +573,40 @@ std::istream& linalg::operator>>(std::istream& in, Matrix& m) {
     std::size_t line = 0;
 
     while (true) {
+        //eat leading whitespace
         in >> std::ws;
-        if (in.peek() == std::char_traits<char>::eof())
-            break;//when we meet ending simbol
+        if (!in) {
+            //if the stream is broken before we even start a new row that's an error
+            fail(line + 1, "stream error");
+        }
+
+        int pk = in.peek();
+        if (pk == std::char_traits<char>::eof())
+            break; // normal end of input
 
         ++line;
 
-        //starting of the string
+        //expect row to start with |
         char ch = 0;
-        in.get(ch);
-        if (ch != '|') 
+        if (!in.get(ch))
+            fail(line, "unexpected EOF at row start");
+
+        if (ch != '|')
             fail(line, "expected '|' at the beginning of the row");
 
         std::size_t cols_in_this_row = 0;
 
         while (true) {
             in >> std::ws;
+            if (!in)
+                fail(line, "stream error while reading row");
+
             int p = in.peek();
-            if (p == std::char_traits<char>::eof()) 
+            if (p == std::char_traits<char>::eof())
                 fail(line, "unexpected EOF, expected '|' at the end of the row");
 
             if (static_cast<char>(p) == '|') {
-                in.get(); // closing |
+                in.get(); // consume closing |
                 break;
             }
 
@@ -606,29 +618,39 @@ std::istream& linalg::operator>>(std::istream& in, Matrix& m) {
             ++cols_in_this_row;
         }
 
-        //first string specifies a number of cols
-        if (row_count == 0) 
-            col_count = cols_in_this_row; 
-        
-        else if (cols_in_this_row != col_count)
-            fail(line, "wrong number of elements (expected " + std::to_string(col_count) +", got " + std::to_string(cols_in_this_row) + ")");
+        //ensuring there is no garbage after closing '|'
+        while (true) {
+            int c = in.peek();
+            if (c == std::char_traits<char>::eof()) break;
+
+            char cc = static_cast<char>(c);
+            if (cc == '\n') { in.get(); break; } // end of line
+            if (cc == '\r') { in.get(); continue; }
+            if (std::isspace(static_cast<unsigned char>(cc))) { in.get(); continue; }
+            fail(line, "garbage after closing '|'");
+        }
+
+        //first row sets expected column count
+        if (row_count == 0) {
+            col_count = cols_in_this_row;
+        } else if (cols_in_this_row != col_count) {
+            fail(line, "wrong number of elements (expected " + std::to_string(col_count) +
+                            ", got " + std::to_string(cols_in_this_row) + ")");
+        }
 
         ++row_count;
-
-        //empty matrix with few strings
-        if (col_count == 0 && row_count > 1) 
+        //empty matrix
+        if (col_count == 0 && row_count > 1)
             fail(line, "empty matrix cannot have multiple rows");
-
     }
 
-    if (row_count == 0) 
+    if (row_count == 0)
         throw std::runtime_error("Matrix format error: empty input (no rows)");
 
-    //making temporary matrix and filling it
+    //building result matrix
     Matrix tmp(row_count, col_count, 0.0);
-
     double* out = tmp.begin();
-    for (std::size_t i = 0; i < data.size(); ++i) 
+    for (std::size_t i = 0; i < data.size(); ++i)
         out[i] = data[i];
 
     m.swap(tmp);
