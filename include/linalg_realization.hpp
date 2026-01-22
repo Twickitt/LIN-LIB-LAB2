@@ -1,4 +1,6 @@
 #include <iostream>
+#include <vector>
+#include <utility>
 #include <initializer_list>
 #include <ostream>
 #include <sstream>
@@ -49,7 +51,7 @@ public:
     Matrix() noexcept{}; //default constr, m_capacity = 0 because of 0 size of the matrix 
     Matrix(const Matrix& other); //copying constr, no noexcept потому, что не можем гарантировать отсутствие исключений(например при выделении памяти)
     Matrix(Matrix&& other) noexcept; //moving constr
-    Matrix(int rows, int columns = 1); //добавил конструктор с параметрами
+    Matrix(size_t rows, size_t columns = 1); //добавил конструктор с параметрами
     Matrix(size_t rows, size_t cols, double value);
     //unified initial constructors
     Matrix(initializer_list<initializer_list<double>> list);
@@ -109,5 +111,7 @@ Matrix lover_triang(const Matrix& matr, int& expression_sign);
 std::ostream& operator<<(std::ostream& out, const Matrix& m);
 
 std::istream& operator>>(std::istream& in, Matrix& m); //operator >> for reading matrix from standart input source
+
 }
+
 inline bool are_equal(double x, double y, double eps = exp(-12)) {return abs(x - y) < eps;}

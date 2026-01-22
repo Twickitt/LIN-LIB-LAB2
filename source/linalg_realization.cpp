@@ -31,7 +31,7 @@ Matrix::Matrix(Matrix&& other) noexcept : m_ptr(other.m_ptr), m_rows(other.m_row
 } 
 
 
-Matrix::Matrix(int rows, int columns) { //constructor with parameters using default constructor
+Matrix::Matrix(size_t rows, size_t columns) { //constructor with parameters using default constructor
     //we are using default constructor btw
     m_rows = rows;
     m_columns = columns;
@@ -563,9 +563,74 @@ std::ostream& linalg::operator<<(std::ostream& out, const Matrix& m) {
 }
 
 //input 
-std::istream& linalg::operator>>(std::istream& in, Matrix& m){
-    
-    //REALIZATION
 
+static void fail(size_t line, const std::string& message){throw std::runtime_error("Matrix format error at row:" + std::to_string(line) + ":" + message);}
+
+std::istream& linalg::operator>>(std::istream& in, Matrix& m) {
+    std::vector<double> data;
+    std::size_t row_count = 0;
+    std::size_t col_count = 0;
+    std::size_t line = 0;
+
+    while (true) {
+        in >> std::ws;
+        if (in.peek() == std::char_traits<char>::eof())
+            break;//when we meet ending simbol
+
+        ++line;
+
+        //starting of the string
+        char ch = 0;
+        in.get(ch);
+        if (ch != '|') 
+            fail(line, "expected '|' at the beginning of the row");
+
+        std::size_t cols_in_this_row = 0;
+
+        while (true) {
+            in >> std::ws;
+            int p = in.peek();
+            if (p == std::char_traits<char>::eof()) 
+                fail(line, "unexpected EOF, expected '|' at the end of the row");
+
+            if (static_cast<char>(p) == '|') {
+                in.get(); // closing |
+                break;
+            }
+
+            double value = 0.0;
+            if (!(in >> value))
+                fail(line, "failed to read numeric value");
+
+            data.push_back(value);
+            ++cols_in_this_row;
+        }
+
+        //first string specifies a number of cols
+        if (row_count == 0) 
+            col_count = cols_in_this_row; 
+        
+        else if (cols_in_this_row != col_count)
+            fail(line, "wrong number of elements (expected " + std::to_string(col_count) +", got " + std::to_string(cols_in_this_row) + ")");
+
+        ++row_count;
+
+        //empty matrix with few strings
+        if (col_count == 0 && row_count > 1) 
+            fail(line, "empty matrix cannot have multiple rows");
+
+    }
+
+    if (row_count == 0) 
+        throw std::runtime_error("Matrix format error: empty input (no rows)");
+
+    //making temporary matrix and filling it
+    Matrix tmp(row_count, col_count, 0.0);
+
+    double* out = tmp.begin();
+    for (std::size_t i = 0; i < data.size(); ++i) 
+        out[i] = data[i];
+
+    m.swap(tmp);
+    return in;
 }
-
